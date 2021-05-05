@@ -5,7 +5,18 @@ import csv
 
 url = "https://api.spacexdata.com/v3/launches"
 
-response = requests.get(url)  # Data download.
+class SpacexHttpError(Exception):
+    pass
+
+def fetch_spacex_data(url):
+    try:
+        response = requests.get(url)  # Data download.
+        response.raise_for_status()
+    except requests.exceptions.HTTPError:
+        raise SpacexHttpError('Fail to fetch spacex data')
+    return response.json()
+
+data = fetch_spacex_data(url)
 
 with open("flights.csv", mode='w') as flights_file:
     csv_w = csv.writer(flights_file)
@@ -19,8 +30,7 @@ with open("flights.csv", mode='w') as flights_file:
     "video_link: "
     ])
 
-
-    for informations in response.json():  #Loop that saves data in a CSV file.
+    for informations in data:  #Loop that saves data in a CSV file.
     
         csv_w.writerow([
             informations["flight_number"],
@@ -30,8 +40,3 @@ with open("flights.csv", mode='w') as flights_file:
             informations["launch_date_utc"],
             informations["links"]["video_link"]
             ])
-
-     
-
-
-
